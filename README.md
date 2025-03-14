@@ -1,6 +1,5 @@
-# URL Shortener Starter
-
-This is an Encore starter for a URL Shortener. It has two API endpoints and a PostgreSQL database to store the URL IDs and retrieve the full URL given an ID.
+# Optimus Prime
+Basically copied from encore
 
 ## Build from scratch with a tutorial
 
