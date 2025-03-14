@@ -3,6 +3,7 @@ export interface PullRequest {
   title: string;
   author: string;
   avatar_url: string;
+  html_url: string;
   status: string;
   created_at: string;
 }

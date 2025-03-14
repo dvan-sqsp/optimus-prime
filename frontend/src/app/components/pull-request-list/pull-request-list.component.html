@@ -20,8 +20,9 @@
 
   <div *ngIf="pullRequests.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div *ngFor="let pr of pullRequests"
-         class="bg-white rounded-lg shadow p-4 border-2"
-         [ngClass]="getBorderClass(pr.created_at)">
+         class="bg-white rounded-lg shadow p-4 border-2 cursor-pointer hover:bg-gray-50 transition-colors"
+         [ngClass]="getBorderClass(pr.created_at)"
+         (click)="openPullRequest(pr.html_url)">
       <div class="flex justify-between items-start mb-2">
         <h3 class="font-medium text-lg text-gray-800">{{ pr.title }}</h3>
         <span class="px-2 py-1 text-xs rounded-full"

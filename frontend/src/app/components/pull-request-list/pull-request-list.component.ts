@@ -74,4 +74,10 @@ export class PRListComponent implements OnChanges {
       return 'border-gray-200';
     }
   }
+
+  openPullRequest(url: string): void {
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
 }

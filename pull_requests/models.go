@@ -18,6 +18,7 @@ type PR struct {
 	Author    string    `json:"author"`
 	AvatarURL string    `json:"avatar_url"`
 	Status    string    `json:"status"`
+	HTMLURL   string    `json:"html_url"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -31,6 +32,7 @@ func entityToModel(pr *github.PullRequest) (*PR, error) {
 		Title:     *pr.Title,
 		Author:    *pr.User.Login,
 		AvatarURL: *pr.User.AvatarURL,
+		HTMLURL:   *pr.HTMLURL,
 		Status:    *pr.State,
 		CreatedAt: pr.CreatedAt.Time,
 	}, nil
