@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"net/http"
 	"os"
@@ -28,7 +27,7 @@ var db = sqldb.NewDatabase("repositories", sqldb.DatabaseConfig{
 //encore:service
 type RepoService struct {
 	client *github.Client
-	db     *sql.DB
+	dao    *Dao
 }
 
 func initRepoService() (*RepoService, error) {
@@ -38,33 +37,24 @@ func initRepoService() (*RepoService, error) {
 	}
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	ghClient := github.NewClient(oauth2.NewClient(context.Background(), tokenSource))
+
+	dao := NewDao(db.Stdlib())
 	return &RepoService{
 		client: ghClient,
-		db:     db.Stdlib(),
+		dao:    dao,
 	}, nil
 }
 
 //encore:api public method=GET path=/repos
 func (s *RepoService) List(ctx context.Context) (*Response, error) {
-
-	query := `
-		SELECT id, name, owner FROM repositories;
-	`
-
-	rows, err := s.db.QueryContext(ctx, query)
+	entityRepos, err := s.dao.list(ctx)
 	if err != nil {
-		return nil, errs.B().Code(errs.Internal).Msg("error retrieving data").Err()
+		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
 	}
 
-	defer rows.Close()
-
 	var repos []Repo
-	for rows.Next() {
-		var entity Entity
-		if err = rows.Scan(&entity.ID, &entity.Name, &entity.Owner); err != nil {
-			return nil, errs.B().Code(errs.Internal).Msg("error scanning row").Cause(err).Err()
-		}
-		repos = append(repos, *entity.ToModel())
+	for _, e := range entityRepos {
+		repos = append(repos, *e.ToModel())
 	}
 
 	return &Response{Repos: repos}, nil
@@ -72,7 +62,7 @@ func (s *RepoService) List(ctx context.Context) (*Response, error) {
 
 //encore:api public method=GET path=/repos/:owner/:name
 func (s *RepoService) Get(ctx context.Context, owner string, name string) (*Repo, error) {
-	repo, err := s.getRepoByNameAndOwner(ctx, name, owner)
+	repo, err := s.dao.getRepoByNameAndOwner(ctx, name, owner)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return nil, errs.B().Code(errs.NotFound).Cause(err).Err()
@@ -85,7 +75,7 @@ func (s *RepoService) Get(ctx context.Context, owner string, name string) (*Repo
 
 //encore:api public method=POST path=/repos
 func (s *RepoService) Add(ctx context.Context, p *AddParams) (*Repo, error) {
-	repo, err := s.getRepoByNameAndOwner(ctx, p.Name, p.Owner)
+	repo, err := s.dao.getRepoByNameAndOwner(ctx, p.Name, p.Owner)
 	if err != nil && !errors.Is(err, ErrNotFound) {
 		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
 	}
@@ -103,25 +93,17 @@ func (s *RepoService) Add(ctx context.Context, p *AddParams) (*Repo, error) {
 		return nil, errs.B().Code(errs.Internal).Msg("error requesting github").Cause(err).Err()
 	}
 
-	newRepo := &Repo{Name: p.Name, Owner: p.Owner}
-
-	query := `
-		INSERT INTO repositories (name, owner)
-		VALUES ($1, $2) RETURNING id
-	`
-
-	args := []interface{}{p.Name, p.Owner}
-	err = s.db.QueryRowContext(ctx, query, args...).Scan(&newRepo.ID)
+	e, err := s.dao.add(ctx, p.Owner, p.Name)
 	if err != nil {
-		rlog.Error("error inserting repo", "err", err)
-		return nil, err
+		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
 	}
-	return newRepo, nil
+
+	return e.ToModel(), nil
 }
 
 //encore:api public method=DELETE path=/repos/:id
 func (s *RepoService) Delete(ctx context.Context, id uuid.UUID) (*Repo, error) {
-	_, err := s.getRepoByID(ctx, id)
+	_, err := s.dao.getRepoByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			return nil, errs.B().Code(errs.NotFound).Cause(err).Err()
@@ -129,46 +111,10 @@ func (s *RepoService) Delete(ctx context.Context, id uuid.UUID) (*Repo, error) {
 		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
 	}
 
-	query := `
-		DELETE FROM repositories WHERE id = $1;
-	`
-
-	_, err = s.db.ExecContext(ctx, query, id)
+	err = s.dao.delete(ctx, id)
 	if err != nil {
-		rlog.Error("error deleting repo", "err", err)
-		return nil, err
+		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
 	}
+
 	return nil, nil
-}
-
-func (s *RepoService) getRepoByNameAndOwner(ctx context.Context, name string, owner string) (*Repo, error) {
-	query := `SELECT * FROM repositories WHERE name = $1 AND owner = $2;`
-
-	args := []interface{}{name, owner}
-
-	var entity Entity
-	err := s.db.QueryRowContext(ctx, query, args...).Scan(&entity.ID, &entity.Name, &entity.Owner)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-
-	return entity.ToModel(), nil
-}
-
-func (s *RepoService) getRepoByID(ctx context.Context, id uuid.UUID) (*Repo, error) {
-	query := `SELECT * FROM repositories WHERE id = $1;`
-
-	var entity Entity
-	err := s.db.QueryRowContext(ctx, query, id).Scan(&entity.ID, &entity.Name, &entity.Owner)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-
-	return entity.ToModel(), nil
 }

@@ -65,8 +65,6 @@ func (s *PRService) List(ctx context.Context, owner string, name string) (*Respo
 		prsToSave = append(prsToSave, *model)
 	}
 
-	rlog.Info("github model", "model", prsToSave)
-
 	return &Response{PRs: prsToSave}, nil
 }
 
