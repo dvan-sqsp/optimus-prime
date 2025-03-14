@@ -12,6 +12,11 @@ type AddParams struct {
 	RepoName string `json:"repo_name"`
 }
 
+type Label struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
 type PR struct {
 	ID        uuid.UUID `json:"id"`
 	Title     string    `json:"title"`
@@ -19,6 +24,7 @@ type PR struct {
 	AvatarURL string    `json:"avatar_url"`
 	Status    string    `json:"status"`
 	HTMLURL   string    `json:"html_url"`
+	Labels    []Label   `json:"labels"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -27,7 +33,7 @@ func entityToModel(pr *github.PullRequest) (*PR, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PR{
+	m := &PR{
 		ID:        uuid,
 		Title:     *pr.Title,
 		Author:    *pr.User.Login,
@@ -35,7 +41,16 @@ func entityToModel(pr *github.PullRequest) (*PR, error) {
 		HTMLURL:   *pr.HTMLURL,
 		Status:    *pr.State,
 		CreatedAt: pr.CreatedAt.Time,
-	}, nil
+	}
+
+	for _, l := range pr.Labels {
+		label := Label{
+			Name:  *l.Name,
+			Color: *l.Color,
+		}
+		m.Labels = append(m.Labels, label)
+	}
+	return m, nil
 }
 
 type Response struct {

@@ -27,8 +27,16 @@
         <h3 class="font-medium text-lg text-gray-800">{{ pr.title }}</h3>
         <span class="px-2 py-1 text-xs rounded-full"
               [ngClass]="getStatusClass(pr.status)">
-        {{ pr.status }}
-      </span>
+          {{ pr.status }}
+        </span>
+      </div>
+      <!-- Labels display -->
+      <div *ngIf="pr.labels && pr.labels.length > 0" class="flex flex-wrap gap-1 mt-1">
+          <span *ngFor="let label of pr.labels"
+                class="px-2 py-0.5 text-xs rounded-full text-white"
+                [ngStyle]="{'background-color': '#' + label.color}">
+            {{ label.name }}
+          </span>
       </div>
       <div class="flex justify-between items-center text-sm text-gray-600 mt-3">
         <div class="flex items-center">
