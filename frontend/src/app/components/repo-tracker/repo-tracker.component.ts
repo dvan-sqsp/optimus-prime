@@ -26,6 +26,9 @@ export class RepoTrackerComponent implements OnInit {
   selectedRepoOwner: string | null = null;
   selectedRepoName: string | null = null;
 
+  // Store the position for the menu
+  menuPosition = { x: 0, y: 0 };
+
   constructor(
     private fb: FormBuilder,
     private repoService: RepoService
@@ -100,10 +103,37 @@ export class RepoTrackerComponent implements OnInit {
     });
   }
 
-  // Add this method to toggle the menu
-  toggleMenu(id: string, event: Event): void {
+  // Toggle menu method with improved positioning
+  toggleMenu(id: string, event: MouseEvent, index: number): void {
     event.stopPropagation();
-    this.openMenuId = this.openMenuId === id ? null : id;
+
+    if (this.openMenuId === id) {
+      this.closeMenu();
+      return;
+    }
+
+    // Calculate position that ensures the menu is fully visible
+    const buttonRect = (event.target as Element).getBoundingClientRect();
+
+    // Position the menu to the left of the button to avoid right edge clipping
+    const menuWidth = 192; // w-48 = 12rem = 192px
+
+    // Default position (show below and to the left of the dots)
+    let xPos = buttonRect.left - menuWidth + 20;
+    let yPos = buttonRect.bottom + 5;
+
+    // If menu would go off the left edge, position it differently
+    if (xPos < 10) {
+      xPos = buttonRect.left;
+    }
+
+    // If menu would go off the bottom of the viewport, show it above the button
+    if (yPos + 100 > window.innerHeight) {
+      yPos = buttonRect.top - 100;
+    }
+
+    this.menuPosition = { x: xPos, y: yPos };
+    this.openMenuId = id;
   }
 
   // Close menu method
