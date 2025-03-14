@@ -6,6 +6,7 @@ export interface PullRequest {
   html_url: string;
   labels: Label[];
   status: string;
+  draft: boolean;
   created_at: string;
 }
 

@@ -25,13 +25,18 @@
          (click)="openPullRequest(pr.html_url)">
       <div class="flex justify-between items-start mb-2">
         <h3 class="font-medium text-lg text-gray-800">{{ pr.title }}</h3>
-        <span class="px-2 py-1 text-xs rounded-full"
+        <span *ngIf="!pr.draft" class="px-2 py-1 text-xs rounded-full"
               [ngClass]="getStatusClass(pr.status)">
-          {{ pr.status }}
+          {{ pr.status | uppercase }}
+        </span>
+        <!-- Draft indicator -->
+        <span *ngIf="pr.draft"
+              class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-md font-medium">
+            DRAFT
         </span>
       </div>
       <!-- Labels display -->
-      <div *ngIf="pr.labels && pr.labels.length > 0" class="flex flex-wrap gap-1 mt-1">
+      <div *ngIf="pr.labels && pr.labels.length > 0" class="flex flex-wrap gap-1 my-1">
           <span *ngFor="let label of pr.labels"
                 class="px-2 py-0.5 text-xs rounded-full text-white"
                 [ngStyle]="{'background-color': '#' + label.color}">
