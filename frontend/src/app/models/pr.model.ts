@@ -1,0 +1,12 @@
+export interface PullRequest {
+  id: string;
+  title: string;
+  author: string;
+  avatar_url: string;
+  status: string;
+  created_at: string;
+}
+
+export interface Response {
+  pull_requests: PullRequest[];
+}

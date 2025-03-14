@@ -1,0 +1,43 @@
+<div class="bg-white rounded-lg shadow-md p-6 mt-8">
+  <h2 class="text-xl font-semibold mb-4 text-gray-700">Pull Requests</h2>
+
+  <div *ngIf="!repoOwner || !repoName" class="text-gray-500 text-center py-4">
+    Select a repository to view pull requests
+  </div>
+
+  <div *ngIf="loading" class="text-gray-500 text-center py-4">
+    Loading pull requests...
+  </div>
+
+  <div *ngIf="error" class="mb-4 p-3 bg-red-100 text-red-700 rounded border border-red-200">
+    {{ error }}
+    <button class="float-right" (click)="error = ''">✕</button>
+  </div>
+
+  <div *ngIf="!loading && pullRequests.length === 0 && repoOwner && repoName" class="text-gray-500 text-center py-4">
+    No pull requests found for this repository
+  </div>
+
+  <div *ngIf="pullRequests.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div *ngFor="let pr of pullRequests"
+         class="bg-white rounded-lg shadow p-4 border-2"
+         [ngClass]="getBorderClass(pr.created_at)">
+      <div class="flex justify-between items-start mb-2">
+        <h3 class="font-medium text-lg text-gray-800">{{ pr.title }}</h3>
+        <span class="px-2 py-1 text-xs rounded-full"
+              [ngClass]="getStatusClass(pr.status)">
+        {{ pr.status }}
+      </span>
+      </div>
+      <div class="flex justify-between items-center text-sm text-gray-600 mt-3">
+        <div class="flex items-center">
+          <img [src]="pr.avatar_url" alt="Author avatar"
+               class="w-8 h-8 rounded-full mr-2"
+               onerror="this.src='assets/default-avatar.png'">
+          <span>{{ pr.author }}</span>
+        </div>
+        <span>{{ pr.created_at | date:'medium' }}</span>
+      </div>
+    </div>
+  </div>
+</div>
