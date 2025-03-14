@@ -5,16 +5,23 @@ import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
 import { RepoTrackerComponent } from './components/repo-tracker/repo-tracker.component';
+import { ClickOutsideModule } from 'ng-click-outside';
+import { PRListComponent } from './components/pull-request-list/pull-request-list.component';
+import { ClickOutsideDirective } from './directives/click-outside.directive';
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    ClickOutsideDirective
+  ],
   imports: [
     BrowserModule,
     ReactiveFormsModule,
     HttpClientModule,
     BrowserAnimationsModule,
     AppComponent,
-    RepoTrackerComponent
+    RepoTrackerComponent,
+    PRListComponent,
+    ClickOutsideModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

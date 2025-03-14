@@ -83,13 +83,35 @@
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ repo.owner }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ repo.name }}</td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <button
-              (click)="delete(repo.id); $event.stopPropagation()"
-              class="text-red-600 hover:text-red-900 focus:outline-none"
-              [disabled]="loading"
-            >
-              Delete
-            </button>
+            <div class="relative">
+              <button
+                type="button"
+                (click)="toggleMenu(repo.id, $event)"
+                class="text-gray-500 hover:text-gray-700 focus:outline-none cursor-pointer"
+                [disabled]="loading"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+
+              <div *ngIf="openMenuId === repo.id"
+                   class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 ring-1 ring-black ring-opacity-5"
+                   clickOutside
+                   (clickOutside)="closeMenu()">
+                <div class="py-1">
+                  <button
+                    type="button"
+                    (click)="delete(repo.id); $event.stopPropagation()"
+                    class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
+                    [disabled]="loading"
+                  >
+                    Delete
+                  </button>
+                  <!-- Add more actions here if needed -->
+                </div>
+              </div>
+            </div>
           </td>
         </tr>
         </tbody>

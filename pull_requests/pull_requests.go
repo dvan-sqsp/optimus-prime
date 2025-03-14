@@ -3,31 +3,22 @@ package pull_requests
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"net/http"
-	"os"
 
+	ghclient "encore.app/gh_client"
 	"encore.app/repositories"
 	"encore.dev/beta/errs"
 	"encore.dev/rlog"
 	"encore.dev/storage/sqldb"
-	"github.com/google/go-github/v69/github"
-	"golang.org/x/oauth2"
 )
 
 //encore:service
 type PRService struct {
-	client *github.Client
+	client ghclient.Client
 	db     *sql.DB
 }
 
 func initPRService() (*PRService, error) {
-	token := os.Getenv("GITHUB_TOKEN_ENCORE")
-	if token == "" {
-		rlog.Error("GITHUB_TOKEN_ENCORE not set")
-	}
-	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	ghClient := github.NewClient(oauth2.NewClient(context.Background(), tokenSource))
+	ghClient := ghclient.NewClient()
 	return &PRService{
 		client: ghClient,
 		db:     db.Stdlib(),
@@ -44,15 +35,10 @@ func (s *PRService) List(ctx context.Context, owner string, name string) (*Respo
 		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
 	}
 
-	prs, resp, err := s.client.PullRequests.List(ctx, owner, name, nil)
+	prs, err := s.client.GetPullRequests(ctx, owner, name)
 	if err != nil {
 		rlog.Error("error fetching PRs", "err", err)
 		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		rlog.Error("status code not ok", "status", resp.Status)
-		return nil, errs.B().Code(errs.Internal).Cause(errors.New("status code not ok from github")).Meta(resp.StatusCode).Err()
 	}
 
 	prsToSave := make([]PR, 0, len(prs))

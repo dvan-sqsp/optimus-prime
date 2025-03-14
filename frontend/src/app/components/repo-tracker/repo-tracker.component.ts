@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Repo } from '../../models/repo.model';
 import { RepoService } from '../../services/repo.service';
 import { PRListComponent } from '../pull-request-list/pull-request-list.component'
+import { ClickOutsideDirective } from '../../directives/click-outside.directive';
 
 @Component({
   selector: 'app-repo-tracker',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PRListComponent],
+  imports: [CommonModule, ReactiveFormsModule, PRListComponent, ClickOutsideDirective],
   templateUrl: './repo-tracker.component.html',
   styleUrls: ['./repo-tracker.component.scss']
 })
@@ -17,6 +18,9 @@ export class RepoTrackerComponent implements OnInit {
   repos: Repo[] = [];
   loading = false;
   error = '';
+
+  // Add this property to track which menu is open
+  openMenuId: string | null = null;
 
   // Add these properties
   selectedRepoOwner: string | null = null;
@@ -81,6 +85,7 @@ export class RepoTrackerComponent implements OnInit {
 
   delete(id: string): void {
     this.loading = true;
+    this.openMenuId = null; // Close menu after action
 
     this.repoService.delete(id).subscribe({
       next: () => {
@@ -93,5 +98,16 @@ export class RepoTrackerComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  // Add this method to toggle the menu
+  toggleMenu(id: string, event: Event): void {
+    event.stopPropagation();
+    this.openMenuId = this.openMenuId === id ? null : id;
+  }
+
+  // Close menu method
+  closeMenu(): void {
+    this.openMenuId = null;
   }
 }
