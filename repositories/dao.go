@@ -20,7 +20,7 @@ func NewDao(db *sql.DB) *Dao {
 
 func (s *Dao) list(ctx context.Context) ([]Entity, error) {
 	query := `
-		SELECT id, name, owner FROM repositories;
+		SELECT id, name, owner FROM repositories ORDER BY name ASC;
 	`
 
 	rows, err := s.db.QueryContext(ctx, query)

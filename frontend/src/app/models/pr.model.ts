@@ -1,5 +1,6 @@
 export interface PullRequest {
   id: string;
+  number: number;
   title: string;
   author: string;
   avatar_url: string;

@@ -19,6 +19,7 @@ type Label struct {
 
 type PR struct {
 	ID        uuid.UUID `json:"id"`
+	Number    int       `json:"number"`
 	Title     string    `json:"title"`
 	Author    string    `json:"author"`
 	AvatarURL string    `json:"avatar_url"`
@@ -37,6 +38,7 @@ func entityToModel(pr *github.PullRequest) (*PR, error) {
 
 	m := &PR{
 		ID:        uuid,
+		Number:    *pr.Number,
 		Title:     *pr.Title,
 		Author:    *pr.User.Login,
 		AvatarURL: *pr.User.AvatarURL,

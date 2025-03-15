@@ -1,5 +1,5 @@
 <div class="bg-white rounded-lg shadow-md p-6 mt-8">
-  <h2 class="text-xl font-semibold mb-4 text-gray-700">Pull Requests</h2>
+  <h2 class="text-xl font-semibold mb-4 text-gray-700">Pull Requests ({{ pullRequests.length }}/30)</h2>
 
   <div *ngIf="!repoOwner || !repoName" class="text-gray-500 text-center py-4">
     Select a repository to view pull requests
@@ -24,16 +24,21 @@
          [ngClass]="getBorderClass(pr.created_at)"
          (click)="openPullRequest(pr.html_url)">
       <div class="flex justify-between items-start mb-2">
-        <h3 class="font-medium text-lg text-gray-800">{{ pr.title }}</h3>
-        <span *ngIf="!pr.draft" class="px-2 py-1 text-xs rounded-full"
-              [ngClass]="getStatusClass(pr.status)">
-          {{ pr.status | uppercase }}
-        </span>
-        <!-- Draft indicator -->
-        <span *ngIf="pr.draft"
-              class="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-md font-medium">
+        <h3 class="font-medium text-md text-gray-800">{{ pr.title }}</h3>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span *ngIf="!pr.draft" class="px-2 py-1 text-xs rounded-md font-medium"
+                [ngClass]="getStatusClass(pr.status)">
+            {{ pr.status | uppercase }}
+          </span>
+                <!-- Draft indicator -->
+                <span *ngIf="pr.draft"
+                      class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-md font-medium">
             DRAFT
-        </span>
+          </span>
+                <span class="text-xs px-2 py-1 rounded-md font-medium">
+            #{{ pr.number }}
+          </span>
+        </div>
       </div>
       <!-- Labels display -->
       <div *ngIf="pr.labels && pr.labels.length > 0" class="flex flex-wrap gap-1 my-1">
