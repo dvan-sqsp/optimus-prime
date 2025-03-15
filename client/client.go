@@ -1,4 +1,4 @@
-package ghclient
+package client
 
 import (
 	"context"
@@ -23,7 +23,7 @@ type GithubClient struct {
 	ghClient *github.Client
 }
 
-func NewClient() *GithubClient {
+func NewGithubClient() *GithubClient {
 	token := os.Getenv("GITHUB_TOKEN_ENCORE")
 	if token == "" {
 		rlog.Error("GITHUB_TOKEN_ENCORE not set")

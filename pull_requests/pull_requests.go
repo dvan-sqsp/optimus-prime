@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	ghclient "encore.app/gh_client"
+	"encore.app/client"
 	"encore.app/repositories"
 	"encore.dev/beta/errs"
 	"encore.dev/rlog"
@@ -13,15 +13,15 @@ import (
 
 //encore:service
 type PRService struct {
-	client ghclient.Client
-	db     *sql.DB
+	ghClient client.Client
+	db       *sql.DB
 }
 
 func initPRService() (*PRService, error) {
-	ghClient := ghclient.NewClient()
+	ghClient := client.NewGithubClient()
 	return &PRService{
-		client: ghClient,
-		db:     db.Stdlib(),
+		ghClient: ghClient,
+		db:       db.Stdlib(),
 	}, nil
 }
 
@@ -35,7 +35,7 @@ func (s *PRService) List(ctx context.Context, owner string, name string) (*Respo
 		return nil, errs.B().Code(errs.Internal).Cause(err).Err()
 	}
 
-	prs, err := s.client.GetPullRequests(ctx, owner, name)
+	prs, err := s.ghClient.GetPullRequests(ctx, owner, name)
 	if err != nil {
 		rlog.Error("error fetching PRs", "err", err)
 		return nil, errs.B().Code(errs.Internal).Cause(err).Err()

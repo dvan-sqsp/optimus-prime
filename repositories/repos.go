@@ -3,15 +3,11 @@ package repositories
 import (
 	"context"
 	"errors"
-	"net/http"
-	"os"
 
+	"encore.app/client"
 	"encore.dev/beta/errs"
-	"encore.dev/rlog"
 	"encore.dev/storage/sqldb"
 	"encore.dev/types/uuid"
-	"github.com/google/go-github/v69/github"
-	"golang.org/x/oauth2"
 )
 
 var (
@@ -26,22 +22,16 @@ var db = sqldb.NewDatabase("repositories", sqldb.DatabaseConfig{
 
 //encore:service
 type RepoService struct {
-	client *github.Client
-	dao    *Dao
+	ghClient client.Client
+	dao      *Dao
 }
 
 func initRepoService() (*RepoService, error) {
-	token := os.Getenv("GITHUB_TOKEN_ENCORE")
-	if token == "" {
-		rlog.Error("GITHUB_TOKEN_ENCORE not set")
-	}
-	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	ghClient := github.NewClient(oauth2.NewClient(context.Background(), tokenSource))
-
+	ghClient := client.NewGithubClient()
 	dao := NewDao(db.Stdlib())
 	return &RepoService{
-		client: ghClient,
-		dao:    dao,
+		ghClient: ghClient,
+		dao:      dao,
 	}, nil
 }
 
@@ -84,12 +74,8 @@ func (s *RepoService) Add(ctx context.Context, p *AddParams) (*Repo, error) {
 		return nil, errs.B().Code(errs.AlreadyExists).Cause(ErrAlreadyExists).Err()
 	}
 
-	_, resp, err := s.client.Repositories.Get(ctx, p.Owner, p.Name)
+	_, err = s.ghClient.GetRepository(ctx, p.Owner, p.Name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			return nil, errs.B().Code(errs.NotFound).Msg("repo not found in github").Err()
-		}
-		rlog.Error("error fetching repo", "err", err)
 		return nil, errs.B().Code(errs.Internal).Msg("error requesting github").Cause(err).Err()
 	}
 
